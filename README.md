@@ -24,7 +24,7 @@ or
 
 ```sh
 git clone https://github.com/mah0x211/lua-httpcli.git
-cd lua-httpconsts
+cd lua-httpcli
 luarocks make rockspecs/httpcli-<version>.rockspec
 ```
 
