@@ -274,9 +274,9 @@ function HttpCli:__index( method )
             if not err and entity.header then
                 local header = {};
                 
-                -- create to uppercase field
+                -- convert to uppercase
                 for k, v in pairs( entity.header or {} ) do
-                    header[k:upper():gsub( '[-]', CONVERSION_TBL )] = v;
+                    header[k:upper():gsub( '[- ]', CONVERSION_TBL )] = v;
                 end
                 entity.header = header;
                 
