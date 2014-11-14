@@ -38,6 +38,12 @@ local SCHEME = {
 -- class
 local LuaSocket = require('halo').class.LuaSocket;
 
+
+function LuaSocket:init( ... )
+    return HttpCli.new( self, METHOD, ... );
+end
+
+
 function LuaSocket:request( req, timeout )
     local sender = SCHEME[req.scheme];
     local body = {};
@@ -72,17 +78,5 @@ function LuaSocket:request( req, timeout )
     return nil, code;
 end
 
-LuaSocket = LuaSocket.exports;
 
-
-local function new( ... )
-    local sock = LuaSocket.new();
-    
-    return HttpCli.new( sock, METHOD, ... );
-end
-
-
-return {
-    new = new
-};
-
+return LuaSocket.exports;
