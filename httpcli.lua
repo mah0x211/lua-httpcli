@@ -272,20 +272,40 @@ function HttpCli:__index( method )
             -- entity:table, err:string = delegate:request( req:table )
             entity, err = own.delegate:request( req, timeout );
             if not err and entity.header then
-                local header = {};
-                
-                -- convert to uppercase
-                for k, v in pairs( entity.header or {} ) do
-                    header[k:upper():gsub( '[- ]', CONVERSION_TBL )] = v;
+                -- replace to uppercase header
+                if own.ucHeader then
+                    local header = {};
+                    
+                    -- convert to uppercase
+                    for k, v in pairs( entity.header ) do
+                        header[k:upper():gsub( '[- ]', CONVERSION_TBL )] = v;
+                    end
+                    entity.header = header;
                 end
-                entity.header = header;
                 
-                -- decode json response
-                if entity.body and entity.header.CONTENT_TYPE and 
-                   entity.header.CONTENT_TYPE:find('^application/json') then
-                    body, err = decodeJSON( entity.body );
-                    if not err then
-                        entity.body = body;
+                if entity.body then
+                    local ctype;
+                    
+                    -- lookup content-type header
+                    if own.ucHeader then
+                        ctype = entity.header.CONTENT_TYPE;
+                    else
+                        for _, name in ipairs({
+                            'content-type', 'Content-Type'
+                        }) do
+                            ctype = entity.header[name];
+                            if ctype then
+                                break;
+                            end
+                        end
+                    end
+                    
+                    -- decode json response
+                    if ctype and ctype:find('^application/json') then
+                        body, err = decodeJSON( entity.body );
+                        if not err then
+                            entity.body = body;
+                        end
                     end
                 end
             end
@@ -301,7 +321,7 @@ end
 -- delegate: request handler
 -- methods: table of method
 -- timeout: default timeout sec
-function HttpCli:init( delegate, methods, timeout )
+function HttpCli:init( delegate, methods, timeout, ucHeader )
     local own = protected( self );
     local index = getmetatable( self ).__index;
     
@@ -309,6 +329,8 @@ function HttpCli:init( delegate, methods, timeout )
         return nil, 'delegate should implement request method';
     elseif not typeof.table( methods ) then
         return nil, 'methods must be table';
+    elseif ucHeader ~= nil and not typeof.boolean( ucHeader ) then
+        return nil, 'ucHeader must be boolean';
     elseif timeout == nil then
         timeout = DEFAULT_TIMEOUT;
     elseif not typeof.uint( timeout ) then
@@ -318,6 +340,7 @@ function HttpCli:init( delegate, methods, timeout )
     own.delegate = delegate;
     own.methods = methods;
     own.timeout = timeout;
+    own.ucHeader = ucHeader;
     
     -- remove unused methods
     for _, name in ipairs({ 'init', 'constructor' }) do

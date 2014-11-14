@@ -75,10 +75,10 @@ end
 LuaSocket = LuaSocket.exports;
 
 
-local function new( timeout )
+local function new( ... )
     local sock = LuaSocket.new();
     
-    return HttpCli.new( sock, METHOD, timeout );
+    return HttpCli.new( sock, METHOD, ... );
 end
 
 
