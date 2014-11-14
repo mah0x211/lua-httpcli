@@ -49,7 +49,7 @@ local HttpCli = require('httpcli.luasocket');
 
 local myDefaultTimeout = 60; -- seconds
 local uppercaseHeaderName = true; -- convert header names to uppercase
-local cli, err = HttpCli.new( myDefaultTimeout, uppercaseHeaderName );
+local cli, err = HttpCli.new( uppercaseHeaderName, myDefaultTimeout );
 
 if err then
     print( err );
