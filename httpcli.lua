@@ -321,7 +321,7 @@ end
 -- delegate: request handler
 -- methods: table of method
 -- timeout: default timeout sec
-function HttpCli:init( delegate, methods, timeout, ucHeader )
+function HttpCli:init( delegate, methods, ucHeader, timeout )
     local own = protected( self );
     local index = getmetatable( self ).__index;
     
