@@ -76,3 +76,7 @@ else
     print( inspect({ res, err }) );
 end
 ```
+
+## Related Module
+
+- httpcli-resty: https://github.com/mah0x211/lua-httpcli-resty
