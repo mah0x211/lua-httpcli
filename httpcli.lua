@@ -43,7 +43,11 @@ local SCHEME = {
 local CONVERSION_TBL = { 
     ['-'] = '_'
 };
+-- errors
 local EINVAL = '%s must be %s';
+local ENOSUP = 'unsupported %s: %q';
+local EENCODE = 'failed to encode application/json content: %s';
+local EDECODE = 'failed to decode application/json content: %s';
 
 -- private
 local function setHeader( req, header )
@@ -79,14 +83,14 @@ local function toJSON( req, body )
     local err;
     
     req.body, err = encodeJSON( body );
-    if not err then
-        setHeader( req, {
-            ['Content-Type'] = 'application/json',
-            ['Content-Length'] = #req.body
-        });
+    if err then
+        return EENCODE:format( err );
     end
     
-    return err;
+    setHeader( req, {
+        ['Content-Type'] = 'application/json',
+        ['Content-Length'] = #req.body
+    });
 end
 
 local BODYENCODER = {
@@ -97,7 +101,6 @@ local BODYENCODER = {
 
 local function setOptBody( req, body, enctype )
     if body ~= nil then
-        -- invalid body type
         if typeof.table( body ) then
             local encoder;
             
@@ -106,13 +109,12 @@ local function setOptBody( req, body, enctype )
                 enctype = 'form';
             elseif not typeof.string( enctype ) then
                 return EINVAL:format( 'opts.enctype', 'string' );
-            -- encode table
             end
             
             encoder = BODYENCODER[enctype];
             -- unknown enctype
             if not encoder then
-                return 'unsupported encoding type: ' .. enctype;
+                return ENOSUP:format( 'encoding type', enctype );
             end
             
             return encoder( req, body );
@@ -194,7 +196,7 @@ local function setURI( req, uri )
         return ('invalid uri format: %q'):format( err );
     -- unsupported protocol
     elseif not SCHEME[parsedURI.scheme] then
-        return ('unsupported protocol: %q'):format( parsedURI.scheme );
+        return ENOSUP:format( 'protocol', parsedURI.scheme );
     end
     req.scheme = parsedURI.scheme;
     req.host = parsedURI.host;
@@ -259,7 +261,7 @@ function HttpCli:__index( method )
             if timeout == nil then
                 timeout = own.timeout;
             elseif not typeof.uint( timeout ) then
-                return nil, 'timeout must be unsigned integer number';
+                return nil, EINVAL:format( 'timeout', 'unsigned integer number' );
             end
             
             -- create request table
@@ -303,7 +305,9 @@ function HttpCli:__index( method )
                     -- decode json response
                     if ctype and ctype:find('^application/json') then
                         body, err = decodeJSON( entity.body );
-                        if not err then
+                        if err then
+                            err = EDECODE:format( err );
+                        else
                             entity.body = body;
                         end
                     end
@@ -328,13 +332,13 @@ function HttpCli:init( delegate, methods, ucHeader, timeout )
     if not typeof.table( delegate ) or not typeof.Function( delegate.request ) then
         return nil, 'delegate should implement request method';
     elseif not typeof.table( methods ) then
-        return nil, 'methods must be table';
+        return nil, EINVAL:format( 'methods', 'table' );
     elseif ucHeader ~= nil and not typeof.boolean( ucHeader ) then
-        return nil, 'ucHeader must be boolean';
+        return nil, EINVAL:format( 'ucHeader', 'boolean' );
     elseif timeout == nil then
         timeout = DEFAULT_TIMEOUT;
     elseif not typeof.uint( timeout ) then
-        return nil, 'timeout must be unsigned integer number';
+        return nil, EINVAL:format( 'timeout', 'unsigned integer number' );
     end
     
     own.delegate = delegate;
