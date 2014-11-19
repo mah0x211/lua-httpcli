@@ -48,6 +48,10 @@ local EINVAL = '%s must be %s';
 local ENOSUP = 'unsupported %s: %q';
 local EENCODE = 'failed to encode application/json content: %s';
 local EDECODE = 'failed to decode application/json content: %s';
+-- mime types
+local MIME_FORM_URLENCODED = 'application/x-www-form-urlencoded';
+local MIME_JSON = 'application/json';
+
 
 -- private
 local function setHeader( req, header )
@@ -73,7 +77,7 @@ end
 local function toFormUrlEncoded( req, body )
     req.body = encodeFormURL( body ) or '';
     setHeader( req, {
-        ['Content-Type'] = 'application/x-www-form-urlencoded',
+        ['Content-Type'] = MIME_FORM_URLENCODED,
         ['Content-Length'] = #req.body
     });
 end
@@ -88,7 +92,7 @@ local function toJSON( req, body )
     end
     
     setHeader( req, {
-        ['Content-Type'] = 'application/json',
+        ['Content-Type'] = MIME_JSON,
         ['Content-Length'] = #req.body
     });
 end
@@ -122,7 +126,7 @@ local function setOptBody( req, body, enctype )
         elseif typeof.string( body ) then
             -- default content-type: application/x-www-form-urlencoded
             if enctype == nil then
-                enctype = 'application/x-www-form-urlencoded';
+                enctype = MIME_FORM_URLENCODED;
                 req.body = encodeURI( body );
             -- invalid enctype
             elseif not typeof.string( enctype ) then
