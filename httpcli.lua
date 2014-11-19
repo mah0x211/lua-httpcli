@@ -98,8 +98,8 @@ local function toJSON( req, body )
 end
 
 local BODYENCODER = {
-    form = toFormUrlEncoded,
-    json = toJSON
+    [MIME_FORM_URLENCODED]  = toFormUrlEncoded,
+    [MIME_JSON]             = toJSON
 };
 
 
@@ -110,7 +110,7 @@ local function setOptBody( req, body, enctype )
             
             -- default content-type: text/plain
             if enctype == nil then
-                enctype = 'form';
+                enctype = MIME_FORM_URLENCODED;
             elseif not typeof.string( enctype ) then
                 return EINVAL:format( 'opts.enctype', 'string' );
             end
