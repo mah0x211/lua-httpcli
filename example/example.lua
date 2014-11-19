@@ -12,10 +12,13 @@ else
     local res;
     
     res, err = cli:get( 'http://example.com/', { -- also, can be pass the https url
-        -- query = <table>,
-        -- header = <table>,
-        -- body = <string or table>
-        -- enctype = <'json' or 'form' or content-type string>,
+        -- query    = <table>,
+        -- header   = <table>,
+        -- body     = <string or table>,
+        -- enctype  = <encoding-type string>
+        --            supported enctype:
+        --              * 'application/json'
+        --              * 'application/x-www-form-urlencoded'
     }, timeoutForThisRequest );
 
     -- response table has the following fields;
