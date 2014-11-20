@@ -67,7 +67,7 @@ local function encodeFormURL( tbl )
     
     for k, v in pairs( flatten( tbl ) ) do
         idx = idx + 1;
-        etbl[idx] = encodeURI( k ) .. '=' .. encodeURI( v );
+        etbl[idx] = encodeURI( k ) .. '=' .. encodeURI( tostring( v ) );
     end
     
     return idx > 0 and table.concat( etbl, '&' ) or nil;
