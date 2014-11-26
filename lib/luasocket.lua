@@ -50,7 +50,7 @@ function LuaSocket:request( req, timeout )
     local res, code, header;
     
     -- set timeout
-    sender.TIMEOUT = timeout;
+    sender.TIMEOUT = timeout > 0 and timeout or -1;
     -- send request
     res, code, header = SCHEME[req.scheme].request({
         method = req.method,
