@@ -148,6 +148,19 @@ local function setOptBody( req, body, enctype )
 end
 
 
+local function setHostHeader( req )
+    if req.port ~= 80 and req.port ~= 443 then
+        setHeader( req, {
+            ['Host'] = req.host .. ':' .. tostring( req.port )
+        });
+    else
+        setHeader( req, {
+            ['Host'] = req.host
+        });
+    end
+end
+
+
 local function setOptHeader( req, header )
     if header == nil then
         return nil;
@@ -245,6 +258,9 @@ local function createRequest( method, uri, opts )
     if err then
         return nil, err;
     end
+    -- append host header
+    setHostHeader( req );
+    
     err = setOptBody( req, opts.body, opts.enctype );
     if err then
         return nil, err;
