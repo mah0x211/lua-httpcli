@@ -163,6 +163,7 @@ local function setOptQuery( req, query )
     if query == nil then
         if req.query then
             req.uri = req.uri .. '?' .. req.query .. req.hash;
+            req.path = req.path .. '?' .. req.query;
         else
             req.uri = req.uri .. req.hash;
         end
@@ -176,8 +177,10 @@ local function setOptQuery( req, query )
     if query then
         if req.query then
             req.uri = req.uri .. '?' .. req.query .. '&' .. query .. req.hash;
+            req.path = req.path .. '?' .. req.query .. '&' .. query;
         else
             req.uri = req.uri .. '?' .. query .. req.hash;
+            req.path = req.path .. '?' .. query;
         end
     -- append has fragment
     else
@@ -202,9 +205,11 @@ local function setURI( req, uri )
     elseif not SCHEME[parsedURI.scheme] then
         return ENOSUP:format( 'protocol', parsedURI.scheme );
     end
+    
     req.scheme = parsedURI.scheme;
     req.host = parsedURI.host;
     req.port = parsedURI.port or req.scheme == 'https' and 443 or 80;
+    req.path = parsedURI.path;
     req.query = parsedURI.query;
     req.hash = parsedURI.fragment and '#' .. parsedURI.fragment or '';
     req.uri = table.concat({
