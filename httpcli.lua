@@ -202,16 +202,45 @@ local function setOptQuery( req, query )
 end
 
 
-local function setURI( req, uri )
-    local err, parsedURI;
+local function isValidHost( host )
+    local port;
+    
+    -- check path-segment
+    if host:find('/', 1, true ) then
+        return false;
+    end
+    
+    -- check port
+    port = host:match(':(.*)$');
+    if port then
+        -- invalid port format
+        if port:find('[^0-9]') then
+            return false;
+        end
+        -- invalid port range
+        port = tonumber( port );
+        if not port or port < 1 or port > 65535 then
+            return false;
+        end
+    end
+    
+    return true;
+end
+
+
+local function setURI( req, uri, failover )
+    local err, parsedURI, scheme, host;
     
     if not typeof.string( uri ) then
         return EINVAL:format( 'uri', 'string' );
+    elseif failover == nil then
+        failover = {};
+    elseif not typeof.table( failover ) then
+        return EINVAL:format( 'opts.failover', 'table' );
     end
     
     -- parse uri
     parsedURI, err = parseURI( uri );
-    
     if err then
         return ('invalid uri format: %q'):format( err );
     -- unsupported protocol
@@ -233,6 +262,43 @@ local function setURI( req, uri )
         parsedURI.port and ':' .. parsedURI.port or '',
         parsedURI.path
     });
+    
+    -- parse failover addrs
+    req.failover = {};
+    for _, addr in ipairs( failover ) do
+        if not typeof.string( addr ) then
+            return EINVAL:format( 'opts.failover#' .. _, 'string' );
+        end
+        
+        scheme, host = addr:match('^(.+)://(.+)$');
+        if scheme then
+            if not SCHEME[scheme] then
+                return ENOSUP:format( 
+                    'opts.failover#' .. _ .. ': protocol', host[1]
+                );
+            elseif not isValidHost( host ) then
+                return ('opts.failover#%d invalid host format'):format( _ );
+            end
+            req.failover[#req.failover+1] = {
+                scheme = scheme,
+                host = host,
+                uri = table.concat({
+                    addr,
+                    parsedURI.path
+                })
+            };
+        elseif not isValidHost( addr ) then
+            return ('opts.failover#%d invalid host format'):format( _ );
+        else
+            req.failover[#req.failover+1] = {
+                scheme = parsedURI.scheme,
+                host = addr,
+                uri = table.concat({
+                    parsedURI.scheme, '://', addr, parsedURI.path
+                })
+            };
+        end
+    end
 end
 
 
@@ -241,13 +307,16 @@ local function createRequest( method, uri, opts )
         method = method,
         header = {}
     };
-    local err = setURI( req, uri );
+    local err;
     
     opts = opts or {};
+    if not typeof.table( opts ) then
+        return nil, EINVAL:format( 'opts', 'table' );
+    end
+    
+    err = setURI( req, uri, opts.failover );
     if err then
         return nil, err;
-    elseif not typeof.table( opts ) then
-        return nil, EINVAL:format( 'opts', 'table' );
     end
     
     err = setOptQuery( req, opts.query );
