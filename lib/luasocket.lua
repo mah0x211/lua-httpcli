@@ -45,34 +45,50 @@ end
 
 
 function LuaSocket:request( req, timeout )
-    local sender = SCHEME[req.scheme];
+    local failover = {
+        scheme = req.scheme,
+        uri = req.uri
+    };
+    local src = req.body and ltn12.source.string( req.body ) or nil;
     local body = {};
-    local res, code, header;
+    local sink = ltn12.sink.table( body );
+    local nfail = 0;
+    local sender, res, code, header;
     
-    -- set timeout
-    sender.TIMEOUT = timeout > 0 and timeout or -1;
-    -- send request
-    res, code, header = SCHEME[req.scheme].request({
-        method = req.method,
-        url = req.uri,
-        headers = req.header,
-        source = req.body and ltn12.source.string( req.body ) or nil,
-        sink = ltn12.sink.table( body )
-    });
-    
-    -- success
-    if type( code ) == 'number' then
-        return {
-            status = code,
-            header = header,
-            body = table.concat( body )
-        };
-    -- timeout: set 408 Request Timeout to status field
-    elseif code == 'timeout' then
-        return {
-            status = 408
-        };
-    end
+    timeout = timeout > 0 and timeout or -1;
+    repeat
+        sender = SCHEME[failover.scheme];
+        sender.TIMEOUT = timeout;
+        req.header['Host'] = failover.host;
+        -- send request
+        res, code, header = sender.request({
+            method = req.method,
+            url = failover.uri,
+            headers = req.header,
+            source = src,
+            sink = sink
+        });
+        -- success
+        if type( code ) == 'number' then
+            return {
+                status = code,
+                header = header,
+                body = table.concat( body )
+            };
+        end
+        
+        -- check failover
+        nfail = nfail + 1;
+        failover = req.failover[nfail];
+        if not failover then
+            -- timeout: set 408 Request Timeout to status field
+            if code == 'timeout' then
+                return {
+                    status = 408
+                };
+            end
+        end
+    until not failover;
     
     -- failed to request
     return nil, code;
