@@ -65,6 +65,15 @@ else
         --            supported enctype:
         --              * 'application/json'
         --              * 'application/x-www-form-urlencoded'
+        -- failover = <failover-address table>
+        --            format: [scheme://]host[:port]
+        --            scheme: http or https
+        --            port: 0 - 65535
+        --            e.g.: {
+        --              'https://localhost',
+        --              this format will inherit a scheme of url argument
+        --              '127.0.0.1:8080'
+        --            }
     }, timeoutForThisRequest );
 
     -- response table has the following fields;
