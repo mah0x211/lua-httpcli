@@ -219,7 +219,7 @@ local function isValidHost( host )
         end
         -- invalid port range
         port = tonumber( port );
-        if not port or port < 1 or port > 65535 then
+        if not port or port < 0 or port > 65535 then
             return false;
         end
     end
