@@ -8,10 +8,11 @@ Lua HTTP client module.
 ## Dependencies
 
 - halo: https://github.com/mah0x211/lua-halo
-- util: https://github.com/mah0x211/lua-util
 - httpconsts: https://github.com/mah0x211/lua-httpconsts
 - lua-cjson: http://www.kyne.com.au/~mark/software/lua-cjson.php
 - luasec: https://github.com/brunoos/luasec
+- url: https://github.com/mah0x211/lua-url
+- util: https://github.com/mah0x211/lua-util
 
 
 ## Installation
