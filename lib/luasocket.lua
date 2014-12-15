@@ -47,6 +47,7 @@ end
 function LuaSocket:request( req, timeout )
     local failover = {
         scheme = req.scheme,
+        host = req.host,
         uri = req.uri
     };
     local src = req.body and ltn12.source.string( req.body ) or nil;
