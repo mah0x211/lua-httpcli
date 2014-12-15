@@ -175,29 +175,23 @@ end
 local function setOptQuery( req, query )
     if query == nil then
         if req.query then
-            req.uri = req.uri .. '?' .. req.query .. req.hash;
+            req.uri = req.uri .. '?' .. req.query;
             req.path = req.path .. '?' .. req.query;
-        else
-            req.uri = req.uri .. req.hash;
         end
-        return nil;
     elseif not typeof.table( query ) then
         return EINVAL:format( 'opts.query', 'table' );
-    end
-    
-    query = encodeFormURL( query );
-    -- append encoded query and hash fragment
-    if query then
-        if req.query then
-            req.uri = req.uri .. '?' .. req.query .. '&' .. query .. req.hash;
-            req.path = req.path .. '?' .. req.query .. '&' .. query;
-        else
-            req.uri = req.uri .. '?' .. query .. req.hash;
-            req.path = req.path .. '?' .. query;
-        end
-    -- append has fragment
     else
-        req.uri = req.uri .. req.hash;
+        query = encodeFormURL( query );
+        -- append encoded query and hash fragment
+        if query then
+            if req.query then
+                req.uri = req.uri .. '?' .. req.query .. '&' .. query;
+                req.path = req.path .. '?' .. req.query .. '&' .. query;
+            else
+                req.uri = req.uri .. '?' .. query;
+                req.path = req.path .. '?' .. query;
+            end
+        end
     end
 end
 
