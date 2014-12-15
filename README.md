@@ -17,16 +17,9 @@ Lua HTTP client module.
 ## Installation
 
 ```sh
-luarocks install --from=http://mah0x211.github.io/rocks/ httpcli
+luarocks install httpcli --from=http://mah0x211.github.io/rocks/
 ```
 
-or 
-
-```sh
-git clone https://github.com/mah0x211/lua-httpcli.git
-cd lua-httpcli
-luarocks make rockspecs/httpcli-<version>.rockspec
-```
 
 ## Usage
 
