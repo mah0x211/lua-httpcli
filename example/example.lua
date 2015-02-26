@@ -16,7 +16,7 @@ else
     local timeoutForThisRequest = 30;
     local res;
     
-    res, err = cli:get( 'http://user:pswd@example.com/', { -- also, can be pass the https url
+    res, err = cli:get( 'http://user:pswd@example.com/', {
         -- query    = <table>,
         -- header   = <table>,
         -- body     = <string or table>,
