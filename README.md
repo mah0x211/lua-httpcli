@@ -41,9 +41,14 @@ luarocks install httpcli --from=http://mah0x211.github.io/rocks/
 local inspect = require('util').inspect;
 local HttpCli = require('httpcli.luasocket');
 
+local function verifyURI( req )
+    print( inspect( req ) );
+    return true;
+end
+
 local myDefaultTimeout = 60; -- seconds
 local uppercaseHeaderName = true; -- convert header names to uppercase
-local cli, err = HttpCli.new( uppercaseHeaderName, myDefaultTimeout );
+local cli, err = HttpCli.new( uppercaseHeaderName, myDefaultTimeout, verifyURI );
 
 if err then
     print( err );
@@ -51,7 +56,7 @@ else
     local timeoutForThisRequest = 30;
     local res;
     
-    res, err = cli:get( 'http://example.com/', { -- also, can be pass the https url
+    res, err = cli:get( 'http://user:pswd@example.com/', {
         -- query    = <table>,
         -- header   = <table>,
         -- body     = <string or table>,
