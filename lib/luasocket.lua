@@ -29,6 +29,7 @@
 
 -- module
 local METHOD = require('httpconsts.method').consts;
+local gettimeofday = require('process').gettimeofday;
 local HttpCli = require('httpcli');
 local ltn12 = require("ltn12");
 local SCHEME = {
@@ -54,13 +55,14 @@ function LuaSocket:request( req, timeout )
     local body = {};
     local sink = ltn12.sink.table( body );
     local nfail = 0;
-    local sender, res, code, header;
+    local sender, res, code, header, latency;
     
     timeout = timeout > 0 and timeout or -1;
     repeat
         sender = SCHEME[failover.scheme];
         sender.TIMEOUT = timeout;
         req.header['Host'] = failover.host;
+        latency = gettimeofday();
         -- send request
         res, code, header = sender.request({
             method = req.method,
@@ -69,12 +71,14 @@ function LuaSocket:request( req, timeout )
             source = src,
             sink = sink
         });
+        latency = gettimeofday() - latency;
         -- success
         if type( code ) == 'number' then
             return {
                 status = code,
                 header = header,
-                body = table.concat( body )
+                body = table.concat( body ),
+                latency = latency
             };
         end
         
