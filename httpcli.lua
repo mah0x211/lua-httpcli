@@ -291,7 +291,7 @@ local function setURI( req, uri )
     req.port = parsedURI.port or req.scheme == 'https' and 443 or 80;
     req.path = parsedURI.path;
     req.query = parsedURI.query;
-    req.hash = parsedURI.fragment and '#' .. parsedURI.fragment or '';
+    req.hash = parsedURI.fragment and '#' .. parsedURI.fragment;
     req.uri = table.concat({
         parsedURI.scheme,
         '://',
