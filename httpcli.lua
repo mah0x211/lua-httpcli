@@ -48,6 +48,7 @@ local EINVAL = '%s must be %s';
 local ENOSUP = 'unsupported %s: %q';
 local EENCODE = 'failed to encode application/json content: %s';
 local EDECODE = 'failed to decode application/json content: %s';
+local EACCES = 'cannot access to %q';
 -- mime types
 local MIME_FORM_URLENCODED = 'application/x-www-form-urlencoded';
 local MIME_JSON = 'application/json';
@@ -356,7 +357,7 @@ function HttpCli:__index( method )
     method = type( method ) == 'string' and own.methods[method] or nil;
     if method then
         return function( _, uri, opts, timeout )
-            local err, req, entity, body;
+            local ok, err, req, entity, body;
             
             -- verify timeout
             if timeout == nil then
@@ -369,6 +370,23 @@ function HttpCli:__index( method )
             req, err = createRequest( method, uri, opts );
             if err then
                 return nil, err;
+            end
+            
+            -- verify request uri
+            if own.verifyURI then
+                ok = own.verifyURI({
+                    uri = req.uri,
+                    host = req.host,
+                    userinfo = req.userinfo,
+                    port = req.port,
+                    path = req.path,
+                    query = req.query,
+                    hash = req.hash
+                });
+                -- access denied
+                if ok ~= true then
+                    return nil, EACCES:format( uri );
+                end
             end
             
             -- call request method
@@ -426,26 +444,28 @@ end
 -- delegate: request handler
 -- methods: table of method
 -- timeout: default timeout sec
-function HttpCli:init( delegate, methods, ucHeader, timeout )
+function HttpCli:init( delegate, methods, ucHeader, timeout, verifyURI )
     local own = protected( self );
     local index = getmetatable( self ).__index;
     
+    -- check arguments
     if not typeof.table( delegate ) or not typeof.Function( delegate.request ) then
         return nil, 'delegate should implement request method';
     elseif not typeof.table( methods ) then
         return nil, EINVAL:format( 'methods', 'table' );
     elseif ucHeader ~= nil and not typeof.boolean( ucHeader ) then
         return nil, EINVAL:format( 'ucHeader', 'boolean' );
-    elseif timeout == nil then
-        timeout = DEFAULT_TIMEOUT;
-    elseif not typeof.uint( timeout ) then
+    elseif timeout ~= nil and not typeof.uint( timeout ) then
         return nil, EINVAL:format( 'timeout', 'unsigned integer number' );
+    elseif verifyURI ~= nil and not typeof.Function( verifyURI ) then
+        return nil, EINVAL:format( 'verifyURI', 'function' );
     end
     
     own.delegate = delegate;
     own.methods = methods;
-    own.timeout = timeout;
+    own.timeout = timeout or DEFAULT_TIMEOUT;
     own.ucHeader = ucHeader;
+    own.verifyURI = verifyURI;
     
     -- remove unused methods
     for _, name in ipairs({ 'init', 'constructor' }) do
