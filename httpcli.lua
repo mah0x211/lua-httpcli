@@ -288,6 +288,7 @@ local function setURI( req, uri )
     
     req.scheme = parsedURI.scheme;
     req.host = parsedURI.host;
+    req.userinfo = parsedURI.userinfo;
     req.port = parsedURI.port or req.scheme == 'https' and 443 or 80;
     req.path = parsedURI.path;
     req.query = parsedURI.query;
