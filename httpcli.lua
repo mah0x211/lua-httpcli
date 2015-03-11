@@ -284,7 +284,7 @@ local function setURI( req, uri )
         return ('invalid uri format: %q'):format( err );
     -- unsupported protocol
     elseif not SCHEME[parsedURI.scheme] then
-        return ENOSUP:format( 'protocol', parsedURI.scheme );
+        return ENOSUP:format( 'protocol', tostring( parsedURI.scheme ) );
     end
     
     req.scheme = parsedURI.scheme;
