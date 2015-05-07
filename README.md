@@ -11,6 +11,7 @@ Lua HTTP client module.
 - httpconsts: https://github.com/mah0x211/lua-httpconsts
 - lua-cjson: http://www.kyne.com.au/~mark/software/lua-cjson.php
 - luasec: https://github.com/brunoos/luasec
+- process: https://github.com/mah0x211/lua-process
 - url: https://github.com/mah0x211/lua-url
 - util: https://github.com/mah0x211/lua-util
 
