@@ -11,7 +11,7 @@ description = {
 }
 dependencies = {
     "lua >= 5.1",
-    "halo >= 1.1.0",
+    "halo >= 1.1.4",
     "httpconsts >= 1.0-1",
     "lua-cjson >= 2.1.0",
     "luasec >= 0.5-2",
