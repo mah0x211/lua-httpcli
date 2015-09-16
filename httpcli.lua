@@ -404,7 +404,8 @@ function HttpCli:__index( method )
                     entity.header = header;
                 end
                 
-                if entity.body then
+                -- if non-empty body
+                if entity.body and not entity.body:find('^%s*$') then
                     local ctype;
                     
                     -- lookup content-type header
