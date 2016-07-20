@@ -1,5 +1,5 @@
 --[[
-  
+
   Copyright (C) 2014 Masatoshi Teruya
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -8,10 +8,10 @@
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
- 
+
   The above copyright notice and this permission notice shall be included in
   all copies or substantial portions of the Software.
- 
+
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
@@ -20,12 +20,12 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   THE SOFTWARE.
 
- 
+
   httpcli.lua
   lua-httpcli
-  
+
   Created by Masatoshi Teruya on 14/11/13.
-  
+
 --]]
 -- module
 local typeof = require('util.typeof');
@@ -40,7 +40,7 @@ local SCHEME = {
     http = true,
     https = true
 };
-local CONVERSION_TBL = { 
+local CONVERSION_TBL = {
     ['-'] = '_'
 };
 -- errors
@@ -65,12 +65,12 @@ end
 local function encodeFormURL( tbl )
     local etbl = {};
     local idx = 0;
-    
+
     for k, v in pairs( flatten( tbl ) ) do
         idx = idx + 1;
         etbl[idx] = encodeURI( k ) .. '=' .. encodeURI( tostring( v ) );
     end
-    
+
     return idx > 0 and table.concat( etbl, '&' ) or nil;
 end
 
@@ -86,12 +86,12 @@ end
 
 local function toJSON( req, body )
     local err;
-    
+
     req.body, err = encodeJSON( body );
     if err then
         return EENCODE:format( err );
     end
-    
+
     setHeader( req, {
         ['Content-Type'] = MIME_JSON,
         ['Content-Length'] = #req.body
@@ -106,12 +106,12 @@ local BODYENCODER = {
 
 local function isValidHost( host )
     local port;
-    
+
     -- check path-segment
     if host:find('/', 1, true ) then
         return false;
     end
-    
+
     -- check port
     port = host:match(':(.*)$');
     if port then
@@ -125,31 +125,31 @@ local function isValidHost( host )
             return false;
         end
     end
-    
+
     return true;
 end
 
 
 local function setOptFailover( req, failover )
     local err, scheme, host;
-    
+
     if failover == nil then
         failover = {};
     elseif not typeof.table( failover ) then
         return EINVAL:format( 'opts.failover', 'table' );
     end
-    
+
     -- parse failover addrs
     req.failover = {};
     for _, addr in ipairs( failover ) do
         if not typeof.string( addr ) then
             return EINVAL:format( 'opts.failover#' .. _, 'string' );
         end
-        
+
         scheme, host = addr:match('^(.+)://(.+)$');
         if scheme then
             if not SCHEME[scheme] then
-                return ENOSUP:format( 
+                return ENOSUP:format(
                     'opts.failover#' .. _ .. ': protocol', host[1]
                 );
             elseif not isValidHost( host ) then
@@ -182,20 +182,20 @@ local function setOptBody( req, body, enctype )
     if body ~= nil then
         if typeof.table( body ) then
             local encoder;
-            
+
             -- default content-type: text/plain
             if enctype == nil then
                 enctype = MIME_FORM_URLENCODED;
             elseif not typeof.string( enctype ) then
                 return EINVAL:format( 'opts.enctype', 'string' );
             end
-            
+
             encoder = BODYENCODER[enctype];
             -- unknown enctype
             if not encoder then
                 return ENOSUP:format( 'encoding type', enctype );
             end
-            
+
             return encoder( req, body );
         -- set string body
         elseif typeof.string( body ) then
@@ -210,7 +210,7 @@ local function setOptBody( req, body, enctype )
             else
                 req.body = body;
             end
-            
+
             setHeader( req, {
                 ['Content-Type'] = enctype,
                 ['Content-Length'] = #req.body
@@ -242,7 +242,7 @@ local function setOptHeader( req, header )
     elseif not typeof.table( header ) then
         return EINVAL:format( 'opts.header', 'table' );
     end
-    
+
     setHeader( req, header );
 end
 
@@ -273,11 +273,11 @@ end
 
 local function setURI( req, uri )
     local err, parsedURI;
-    
+
     if not typeof.string( uri ) then
         return EINVAL:format( 'uri', 'string' );
     end
-    
+
     -- parse uri
     parsedURI, err = parseURI( uri );
     if err then
@@ -286,7 +286,7 @@ local function setURI( req, uri )
     elseif not SCHEME[parsedURI.scheme] then
         return ENOSUP:format( 'protocol', tostring( parsedURI.scheme ) );
     end
-    
+
     req.scheme = parsedURI.scheme;
     req.host = parsedURI.host;
     req.userinfo = parsedURI.userinfo;
@@ -311,17 +311,17 @@ local function createRequest( method, uri, opts )
         header = {}
     };
     local err;
-    
+
     opts = opts or {};
     if not typeof.table( opts ) then
         return nil, EINVAL:format( 'opts', 'table' );
     end
-    
+
     err = setURI( req, uri );
     if err then
         return nil, err;
     end
-    
+
     err = setOptQuery( req, opts.query );
     if err then
         return nil, err;
@@ -332,7 +332,7 @@ local function createRequest( method, uri, opts )
     end
     -- append host header
     setHostHeader( req );
-    
+
     err = setOptBody( req, opts.body, opts.enctype );
     if err then
         return nil, err;
@@ -342,7 +342,7 @@ local function createRequest( method, uri, opts )
     if err then
         return nil, err;
     end
-    
+
     return req;
 end
 
@@ -353,25 +353,25 @@ local HttpCli = require('halo').class.HttpCli;
 
 function HttpCli:__index( method )
     local own = protected( self );
-    
+
     method = type( method ) == 'string' and own.methods[method] or nil;
     if method then
         return function( _, uri, opts, timeout )
             local ok, err, req, entity, body;
-            
+
             -- verify timeout
             if timeout == nil then
                 timeout = own.timeout;
             elseif not typeof.uint( timeout ) then
                 return nil, EINVAL:format( 'timeout', 'unsigned integer number' );
             end
-            
+
             -- create request table
             req, err = createRequest( method, uri, opts );
             if err then
                 return nil, err;
             end
-            
+
             -- verify request uri
             if own.verifyURI then
                 ok = own.verifyURI({
@@ -388,7 +388,7 @@ function HttpCli:__index( method )
                     return nil, EACCES:format( uri );
                 end
             end
-            
+
             -- call request method
             -- entity:table, err:string = delegate:request( req:table )
             entity, err = own.delegate:request( req, timeout );
@@ -396,18 +396,18 @@ function HttpCli:__index( method )
                 -- replace to uppercase header
                 if own.ucHeader then
                     local header = {};
-                    
+
                     -- convert to uppercase
                     for k, v in pairs( entity.header ) do
                         header[k:upper():gsub( '[- ]', CONVERSION_TBL )] = v;
                     end
                     entity.header = header;
                 end
-                
+
                 -- if non-empty body
                 if entity.body and not entity.body:find('^%s*$') then
                     local ctype;
-                    
+
                     -- lookup content-type header
                     if own.ucHeader then
                         ctype = entity.header.CONTENT_TYPE;
@@ -421,7 +421,7 @@ function HttpCli:__index( method )
                             end
                         end
                     end
-                    
+
                     -- decode json response
                     if ctype and ctype:find('^application/json') then
                         body, err = decodeJSON( entity.body );
@@ -433,11 +433,11 @@ function HttpCli:__index( method )
                     end
                 end
             end
-            
+
             return entity, err;
         end
     end
-    
+
     return nil;
 end
 
@@ -448,7 +448,7 @@ end
 function HttpCli:init( delegate, methods, ucHeader, timeout, verifyURI )
     local own = protected( self );
     local index = getmetatable( self ).__index;
-    
+
     -- check arguments
     if not typeof.table( delegate ) or not typeof.Function( delegate.request ) then
         return nil, 'delegate should implement request method';
@@ -461,18 +461,18 @@ function HttpCli:init( delegate, methods, ucHeader, timeout, verifyURI )
     elseif verifyURI ~= nil and not typeof.Function( verifyURI ) then
         return nil, EINVAL:format( 'verifyURI', 'function' );
     end
-    
+
     own.delegate = delegate;
     own.methods = methods;
     own.timeout = timeout or DEFAULT_TIMEOUT;
     own.ucHeader = ucHeader;
     own.verifyURI = verifyURI;
-    
+
     -- remove unused methods
     for _, name in ipairs({ 'init', 'constructor' }) do
         index[name] = nil;
     end
-    
+
     return self;
 end
 

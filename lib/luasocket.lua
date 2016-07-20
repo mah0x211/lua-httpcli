@@ -1,5 +1,5 @@
 --[[
-  
+
   Copyright (C) 2014 Masatoshi Teruya
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -8,10 +8,10 @@
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
- 
+
   The above copyright notice and this permission notice shall be included in
   all copies or substantial portions of the Software.
- 
+
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
@@ -19,12 +19,12 @@
   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   THE SOFTWARE.
-   
+
   lib/luasocket.lua
   lua-httpcli
-  
+
   Created by Masatoshi Teruya on 14/11/13.
-  
+
 --]]
 
 -- module
@@ -56,7 +56,7 @@ function LuaSocket:request( req, timeout )
     local sink = ltn12.sink.table( body );
     local nfail = 0;
     local sender, res, code, header, latency;
-    
+
     timeout = timeout > 0 and timeout or -1;
     repeat
         sender = SCHEME[failover.scheme];
@@ -81,7 +81,7 @@ function LuaSocket:request( req, timeout )
                 latency = latency
             };
         end
-        
+
         -- check failover
         nfail = nfail + 1;
         failover = req.failover[nfail];
@@ -94,7 +94,7 @@ function LuaSocket:request( req, timeout )
             end
         end
     until not failover;
-    
+
     -- failed to request
     return nil, code;
 end
