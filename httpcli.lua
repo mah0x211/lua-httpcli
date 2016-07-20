@@ -178,6 +178,17 @@ local function setOptFailover( req, failover )
 end
 
 
+local function setOptRedirect( req, redirect )
+    if redirect == nil then
+        req.redirect = false;
+    elseif not typeof.boolean( redirect ) then
+        return EINVAL:format( 'opts.redirect', 'boolean' );
+    else
+        req.redirect = redirect;
+    end
+end
+
+
 local function setOptBody( req, body, enctype )
     if body ~= nil then
         if typeof.table( body ) then
@@ -337,7 +348,12 @@ local function createRequest( method, uri, opts )
     if err then
         return nil, err;
     end
-    
+
+    err = setOptRedirect( req, opts.redirect );
+    if err then
+        return nil, err;
+    end
+
     err = setOptFailover( req, opts.failover );
     if err then
         return nil, err;

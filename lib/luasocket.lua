@@ -69,7 +69,8 @@ function LuaSocket:request( req, timeout )
             url = failover.uri,
             headers = req.header,
             source = src,
-            sink = sink
+            sink = sink,
+            redirect = req.redirect
         });
         latency = gettimeofday() - latency;
         -- success
