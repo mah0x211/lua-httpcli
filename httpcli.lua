@@ -340,9 +340,10 @@ local function createRequest( method, uri, opts )
     err = setOptHeader( req, opts.header );
     if err then
         return nil, err;
+    -- append host header if undefined
+    elseif not opts.header['Host'] and not opts.header['host'] then
+        setHostHeader( req );
     end
-    -- append host header
-    setHostHeader( req );
 
     err = setOptBody( req, opts.body, opts.enctype );
     if err then

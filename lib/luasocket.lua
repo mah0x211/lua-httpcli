@@ -61,7 +61,6 @@ function LuaSocket:request( req, timeout )
     repeat
         sender = SCHEME[failover.scheme];
         sender.TIMEOUT = timeout;
-        req.header['Host'] = failover.host;
         latency = gettimeofday();
         -- send request
         res, code, header = sender.request({
